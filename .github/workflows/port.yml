@@ -1,0 +1,53 @@
+name: Yagadama ROM Port Action
+
+on:
+  workflow_dispatch:
+    inputs:
+      port_rom_url:
+        description: 'Link Direct Download Port ROM (ROM Bebas yang Mau Di-port)'
+        required: true
+        default: ''
+      base_rom_url:
+        description: 'Link Direct Download Base ROM Mi 5X (ROM Stabil Mi 5X)'
+        required: true
+        default: ''
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Tools & Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y aria2 p7zip-full zip unzip curl wget python3
+
+      - name: Download ROM Files
+        run: |
+          mkdir -p input
+          echo "Downloading Port ROM..."
+          aria2c -x 16 -s 16 -d input -o port_rom.zip "${{ github.event.inputs.port_rom_url }}"
+          
+          echo "Downloading Base ROM Mi 5X..."
+          aria2c -x 16 -s 16 -d input -o base_rom.zip "${{ github.event.inputs.base_rom_url }}"
+
+      - name: Execute Custom Porting Script
+        run: |
+          chmod +x tiffany_port.sh
+          ./tiffany_port.sh input/port_rom.zip input/base_rom.zip
+
+      - name: Upload Output and Get Download Link
+        run: |
+          RESULT_FILE=$(ls out/*.zip | head -n 1)
+          echo "Uploading $RESULT_FILE to Pixeldrain..."
+          
+          RESPONSE=$(curl -s -F "file=@$RESULT_FILE" https://pixeldrain.com/api/file/)
+          FILE_ID=$(echo $RESPONSE | grep -o '"id":"[^"]*' | grep -o '[^"]*$')
+          
+          echo "======================================================="
+          echo " PORTING BERHASIL OLEH YAGADAMA!"
+          echo " LINK DOWNLOAD ROM: https://pixeldrain.com/u/$FILE_ID"
+          echo "======================================================="
