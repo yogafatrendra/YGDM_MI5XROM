@@ -12,6 +12,9 @@ on:
         required: true
         default: ''
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -39,15 +42,16 @@ jobs:
           chmod +x tiffany_port.sh
           ./tiffany_port.sh input/port_rom.zip input/base_rom.zip
 
-      - name: Upload Output and Get Download Link
-        run: |
-          RESULT_FILE=$(ls out/*.zip | head -n 1)
-          echo "Uploading $RESULT_FILE to Transfer.sh..."
-          
-          # Upload ke Transfer.sh
-          DOWNLOAD_URL=$(curl --upload-file "$RESULT_FILE" "https://transfer.sh/$(basename $RESULT_FILE)")
-          
-          echo "======================================================="
-          echo " PORTING BERHASIL OLEH YAGADAMA!"
-          echo " LINK DOWNLOAD ROM: $DOWNLOAD_URL"
-          echo "======================================================="
+      - name: Upload Output to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          files: out/*.zip
+          tag_name: "v1.0-${{ github.run_number }}"
+          name: "Tiffany ROM Port - Build #${{ github.run_number }}"
+          body: |
+            =======================================================
+            PORTING BERHASIL OLEH YAGADAMA!
+            Device Target: Xiaomi Mi 5X (tiffany)
+            =======================================================
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
