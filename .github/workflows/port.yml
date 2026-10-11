@@ -42,12 +42,12 @@ jobs:
       - name: Upload Output and Get Download Link
         run: |
           RESULT_FILE=$(ls out/*.zip | head -n 1)
-          echo "Uploading $RESULT_FILE to Pixeldrain..."
+          echo "Uploading $RESULT_FILE to Transfer.sh..."
           
-          RESPONSE=$(curl -s -F "file=@$RESULT_FILE" https://pixeldrain.com/api/file/)
-          FILE_ID=$(echo $RESPONSE | grep -o '"id":"[^"]*' | grep -o '[^"]*$')
+          # Upload ke Transfer.sh
+          DOWNLOAD_URL=$(curl --upload-file "$RESULT_FILE" "https://transfer.sh/$(basename $RESULT_FILE)")
           
           echo "======================================================="
           echo " PORTING BERHASIL OLEH YAGADAMA!"
-          echo " LINK DOWNLOAD ROM: https://pixeldrain.com/u/$FILE_ID"
+          echo " LINK DOWNLOAD ROM: $DOWNLOAD_URL"
           echo "======================================================="
